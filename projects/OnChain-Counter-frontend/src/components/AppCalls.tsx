@@ -14,7 +14,7 @@ interface AppCallsInterface {
 const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
   const [loading, setLoading] = useState<boolean>(false)
   const [deploying, setDeploying] = useState<boolean>(false)
-  const [appId, setAppId] = useState<number | null>(null)
+  // const [appId, setAppId] = useState<number | null>(null)
   const [currentCount, setCurrentCount] = useState<number>(0)
   const { enqueueSnackbar } = useSnackbar()
   const { activeAccount, activeAddress, transactionSigner: TransactionSigner } = useWallet()
@@ -26,6 +26,10 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
     indexerConfig,
   })
   algorand.setDefaultSigner(TransactionSigner)
+
+  // setappId
+  const appId = 736968083  // Replace with your actual appId
+
 
   // Separate function to fetch current count
   const fetchCount = async (appId: number): Promise<number> => {
@@ -45,35 +49,36 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
     }
   }
 
-  const deployContract = async () => {
-    setDeploying(true)
-    try {
-      const factory = new CounterFactory({
-        defaultSender: activeAddress ?? undefined,
-        algorand,
-      })
+  // const deployContract = async () => {
+  //   setDeploying(true)
+  //   try {
+  //     const factory = new CounterFactory({
+  //       defaultSender: activeAddress ?? undefined,
+  //       algorand,
+  //     })
       
-      const deployResult = await factory.deploy({
-        onSchemaBreak: OnSchemaBreak.AppendApp,
-        onUpdate: OnUpdate.AppendApp,
-      })
+  //     const deployResult = await factory.deploy({
+  //       onSchemaBreak: OnSchemaBreak.AppendApp,
+  //       onUpdate: OnUpdate.AppendApp,
 
-      const deployedAppId = Number(deployResult.appClient.appId)
-      setAppId(deployedAppId)
+  //     })
+
+  //     const deployedAppId = Number(deployResult.appClient.appId)
+  //     setAppId(deployedAppId)
       
-      // Fetch and set initial count after deployment
-      const count = await fetchCount(deployedAppId)
-      setCurrentCount(count)
+  //     // Fetch and set initial count after deployment
+  //     const count = await fetchCount(deployedAppId)
+  //     setCurrentCount(count)
       
-      enqueueSnackbar(`Contract deployed with App ID: ${deployedAppId}. Initial count: ${count}`, { 
-        variant: 'success' 
-      })
-    } catch (e) {
-      enqueueSnackbar(`Error deploying contract: ${(e as Error).message}`, { variant: 'error' })
-    } finally {
-      setDeploying(false)
-    }
-  }
+  //     enqueueSnackbar(`Contract deployed with App ID: ${deployedAppId}. Initial count: ${count}`, { 
+  //       variant: 'success' 
+  //     })
+  //   } catch (e) {
+  //     enqueueSnackbar(`Error deploying contract: ${(e as Error).message}`, { variant: 'error' })
+  //   } finally {
+  //     setDeploying(false)
+  //   }
+  // }
 
   const incrementCounter = async () => {
     if (!appId) {
@@ -83,6 +88,7 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
 
     setLoading(true)
     try {
+      
       const counterClient = new CounterClient({
         appId: BigInt(appId),
         algorand,
@@ -123,7 +129,7 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
           <div className="flex flex-col gap-2">
             <button 
               className={`btn btn-primary ${deploying ? 'loading' : ''}`}
-              onClick={deployContract}
+              
               disabled={deploying || loading}
             >
               {deploying ? 'Deploying...' : 'Deploy Contract'}
