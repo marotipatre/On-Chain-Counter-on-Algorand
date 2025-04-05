@@ -4,7 +4,7 @@
 // smart_contracts.counter.contract.Counter.__algopy_entrypoint_with_init() -> uint64:
 main:
     intcblock 0 1
-    bytecblock "count" 0x151f7c75
+    bytecblock "count"
     txn ApplicationID
     bnz main_after_if_else@2
     // smart_contracts/counter/contract.py:10
@@ -17,49 +17,15 @@ main_after_if_else@2:
     // smart_contracts/counter/contract.py:5
     // class Counter(ARC4Contract):
     txn NumAppArgs
-    bz main_bare_routing@8
-    pushbytess 0x36e72924 0xc9c9375a 0x8d8151ac // method "incr_counter()uint64", method "get_counter()uint64", method "decr_counter()uint64"
+    bz main_bare_routing@6
+    pushbytes 0x36e72924 // method "incr_counter()uint64"
     txna ApplicationArgs 0
-    match main_incr_counter_route@5 main_get_counter_route@6 main_decr_counter_route@7
+    match main_incr_counter_route@5
 
-main_after_if_else@10:
+main_after_if_else@8:
     // smart_contracts/counter/contract.py:5
     // class Counter(ARC4Contract):
     intc_0 // 0
-    return
-
-main_decr_counter_route@7:
-    // smart_contracts/counter/contract.py:21
-    // @abimethod()
-    txn OnCompletion
-    !
-    assert // OnCompletion is not NoOp
-    txn ApplicationID
-    assert // can only call when not creating
-    callsub decr_counter
-    itob
-    bytec_1 // 0x151f7c75
-    swap
-    concat
-    log
-    intc_1 // 1
-    return
-
-main_get_counter_route@6:
-    // smart_contracts/counter/contract.py:17
-    // @abimethod(readonly=True)
-    txn OnCompletion
-    !
-    assert // OnCompletion is not NoOp
-    txn ApplicationID
-    assert // can only call when not creating
-    callsub get_counter
-    itob
-    bytec_1 // 0x151f7c75
-    swap
-    concat
-    log
-    intc_1 // 1
     return
 
 main_incr_counter_route@5:
@@ -72,18 +38,18 @@ main_incr_counter_route@5:
     assert // can only call when not creating
     callsub incr_counter
     itob
-    bytec_1 // 0x151f7c75
+    pushbytes 0x151f7c75
     swap
     concat
     log
     intc_1 // 1
     return
 
-main_bare_routing@8:
+main_bare_routing@6:
     // smart_contracts/counter/contract.py:5
     // class Counter(ARC4Contract):
     txn OnCompletion
-    bnz main_after_if_else@10
+    bnz main_after_if_else@8
     txn ApplicationID
     !
     assert // can only call when creating
@@ -105,39 +71,6 @@ incr_counter:
     swap
     app_global_put
     // smart_contracts/counter/contract.py:15
-    // return self.count
-    intc_0 // 0
-    bytec_0 // "count"
-    app_global_get_ex
-    assert // check self.count exists
-    retsub
-
-
-// smart_contracts.counter.contract.Counter.get_counter() -> uint64:
-get_counter:
-    // smart_contracts/counter/contract.py:19
-    // return self.count
-    intc_0 // 0
-    bytec_0 // "count"
-    app_global_get_ex
-    assert // check self.count exists
-    retsub
-
-
-// smart_contracts.counter.contract.Counter.decr_counter() -> uint64:
-decr_counter:
-    // smart_contracts/counter/contract.py:23
-    // self.count -= UInt64(1)
-    intc_0 // 0
-    bytec_0 // "count"
-    app_global_get_ex
-    assert // check self.count exists
-    intc_1 // 1
-    -
-    bytec_0 // "count"
-    swap
-    app_global_put
-    // smart_contracts/counter/contract.py:24
     // return self.count
     intc_0 // 0
     bytec_0 // "count"

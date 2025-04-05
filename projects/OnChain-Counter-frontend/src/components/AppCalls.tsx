@@ -54,7 +54,8 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
 
     const { appClient } = deployResult
 
-    const response = await appClient.send.hello({ args: { name: contractInput } }).catch((e: Error) => {
+
+    const response = await appClient.send.incrCounter().catch((e: Error) => {
       enqueueSnackbar(`Error calling the contract: ${e.message}`, { variant: 'error' })
       setLoading(false)
       return undefined
@@ -71,17 +72,11 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
   return (
     <dialog id="appcalls_modal" className={`modal ${openModal ? 'modal-open' : ''} bg-slate-200`}>
       <form method="dialog" className="modal-box">
-        <h3 className="font-bold text-lg">Say hello to your Algorand smart contract</h3>
+        <h3 className="font-bold text-lg">Increase the Count</h3>
         <br />
-        <input
-          type="text"
-          placeholder="Provide input to hello function"
-          className="input input-bordered w-full"
-          value={contractInput}
-          onChange={(e) => {
-            setContractInput(e.target.value)
-          }}
-        />
+        <p className="py-4">
+          This will increase the count of the contract by 1. The contract will be deployed if it doesn't exist.
+        </p>
         <div className="modal-action ">
           <button className="btn" onClick={() => setModalState(!openModal)}>
             Close
@@ -89,6 +84,7 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
           <button className={`btn`} onClick={sendAppCall}>
             {loading ? <span className="loading loading-spinner" /> : 'Send application call'}
           </button>
+          
         </div>
       </form>
     </dialog>
