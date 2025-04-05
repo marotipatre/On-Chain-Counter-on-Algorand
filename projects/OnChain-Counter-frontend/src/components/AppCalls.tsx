@@ -1,6 +1,6 @@
 import { useWallet } from '@txnlab/use-wallet-react'
 import { useSnackbar } from 'notistack'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CounterFactory, CounterClient } from '../contracts/Counter'
 import { OnSchemaBreak, OnUpdate } from '@algorandfoundation/algokit-utils/types/app'
 import { getAlgodConfigFromViteEnvironment, getIndexerConfigFromViteEnvironment } from '../utils/network/getAlgoClientConfigs'
@@ -49,37 +49,6 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
     }
   }
 
-  // const deployContract = async () => {
-  //   setDeploying(true)
-  //   try {
-  //     const factory = new CounterFactory({
-  //       defaultSender: activeAddress ?? undefined,
-  //       algorand,
-  //     })
-      
-  //     const deployResult = await factory.deploy({
-  //       onSchemaBreak: OnSchemaBreak.AppendApp,
-  //       onUpdate: OnUpdate.AppendApp,
-
-  //     })
-
-  //     const deployedAppId = Number(deployResult.appClient.appId)
-  //     setAppId(deployedAppId)
-      
-  //     // Fetch and set initial count after deployment
-  //     const count = await fetchCount(deployedAppId)
-  //     setCurrentCount(count)
-      
-  //     enqueueSnackbar(`Contract deployed with App ID: ${deployedAppId}. Initial count: ${count}`, { 
-  //       variant: 'success' 
-  //     })
-  //   } catch (e) {
-  //     enqueueSnackbar(`Error deploying contract: ${(e as Error).message}`, { variant: 'error' })
-  //   } finally {
-  //     setDeploying(false)
-  //   }
-  // }
-
   const incrementCounter = async () => {
     if (!appId) {
       enqueueSnackbar('Please deploy contract first', { variant: 'error' })
@@ -112,6 +81,16 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
     }
   }
 
+  useEffect(() => {
+    const fetchInitialCount = async () => {
+      if (appId) {
+        const count = await fetchCount(appId)
+        setCurrentCount(count)
+      }
+    }
+    fetchInitialCount()
+  }, [appId, activeAddress])
+  
   return (
     <dialog id="appcalls_modal" className={`modal ${openModal ? 'modal-open' : ''} bg-slate-200`}>
       <form method="dialog" className="modal-box">
@@ -125,17 +104,6 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
               <span>Current Count: {currentCount}</span>
             </div>
           )}
-          
-          <div className="flex flex-col gap-2">
-            <button 
-              className={`btn btn-primary ${deploying ? 'loading' : ''}`}
-              
-              disabled={deploying || loading}
-            >
-              {deploying ? 'Deploying...' : 'Deploy Contract'}
-            </button>
-            <p className="text-sm">Run this once to deploy the contract</p>
-          </div>
           
           <div className="divider">OR</div>
           
