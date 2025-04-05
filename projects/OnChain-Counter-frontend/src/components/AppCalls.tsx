@@ -82,14 +82,35 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
   }
 
   useEffect(() => {
-    const fetchInitialCount = async () => {
+    let intervalId: NodeJS.Timeout | null = null;
+  
+    const fetchAndUpdateCount = async () => {
       if (appId) {
-        const count = await fetchCount(appId)
-        setCurrentCount(count)
+        const newCount = await fetchCount(appId);
+  
+        // Check if the count has changed
+        if (newCount !== currentCount) {
+          setCurrentCount(newCount);
+  
+          // Show an alert if the count has changed
+          enqueueSnackbar(`Count updated! New count: ${newCount}`, { variant: 'info' });
+        }
       }
-    }
-    fetchInitialCount()
-  }, [appId, activeAddress])
+    };
+  
+    // Fetch count immediately and then set up interval
+    fetchAndUpdateCount();
+    intervalId = setInterval(fetchAndUpdateCount, 5000); // Fetch every 5 seconds
+  
+    // Cleanup interval on unmount or dependency change
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [appId, activeAddress, currentCount, enqueueSnackbar]);
+
+  
   
   return (
     <dialog id="appcalls_modal" className={`modal ${openModal ? 'modal-open' : ''} bg-slate-200`}>
