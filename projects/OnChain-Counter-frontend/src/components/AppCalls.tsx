@@ -58,6 +58,8 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
         onUpdate: OnUpdate.AppendApp,
       })
 
+      // const deployResult = await factory.send.create.create()
+      
       const deployedAppId = Number(deployResult.appClient.appId)
       setAppId(deployedAppId)
       

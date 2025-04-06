@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 # define deployment behaviour based on supplied app spec
 def deploy() -> None:
     from smart_contracts.artifacts.counter.counter_client import (
-        HelloArgs,
         CounterFactory,
     )
 

@@ -19,7 +19,7 @@ from algosdk.v2client.models import SimulateTraceConfig
 import algokit_utils
 from algokit_utils import AlgorandClient as _AlgoKitAlgorandClient
 
-_APP_SPEC_JSON = r"""{"arcs": [22, 28], "bareActions": {"call": [], "create": ["NoOp"]}, "methods": [{"actions": {"call": ["NoOp"], "create": []}, "args": [], "name": "incr_counter", "returns": {"type": "uint64"}, "events": [], "readonly": false, "recommendations": {}}], "name": "Counter", "state": {"keys": {"box": {}, "global": {"count": {"key": "Y291bnQ=", "keyType": "AVMString", "valueType": "AVMUint64"}}, "local": {}}, "maps": {"box": {}, "global": {}, "local": {}}, "schema": {"global": {"bytes": 0, "ints": 1}, "local": {"bytes": 0, "ints": 0}}}, "structs": {}, "byteCode": {"approval": "CiACAAEmAQVjb3VudDEYQAADKCJnMRtBACWABDbnKSQ2GgCOAQACIkMxGRREMRhEiAAXFoAEFR98dUxQsCNDMRlA/+MxGBREI0MiKGVEIwgoTGciKGVEiQ==", "clear": "CoEBQw=="}, "compilerInfo": {"compiler": "puya", "compilerVersion": {"major": 4, "minor": 7, "patch": 0}}, "events": [], "networks": {}, "source": {"approval": "I3ByYWdtYSB2ZXJzaW9uIDEwCiNwcmFnbWEgdHlwZXRyYWNrIGZhbHNlCgovLyBzbWFydF9jb250cmFjdHMuY291bnRlci5jb250cmFjdC5Db3VudGVyLl9fYWxnb3B5X2VudHJ5cG9pbnRfd2l0aF9pbml0KCkgLT4gdWludDY0OgptYWluOgogICAgaW50Y2Jsb2NrIDAgMQogICAgYnl0ZWNibG9jayAiY291bnQiCiAgICB0eG4gQXBwbGljYXRpb25JRAogICAgYm56IG1haW5fYWZ0ZXJfaWZfZWxzZUAyCiAgICAvLyBzbWFydF9jb250cmFjdHMvY291bnRlci9jb250cmFjdC5weToxMAogICAgLy8gc2VsZi5jb3VudCA9IFVJbnQ2NCgwKQogICAgYnl0ZWNfMCAvLyAiY291bnQiCiAgICBpbnRjXzAgLy8gMAogICAgYXBwX2dsb2JhbF9wdXQKCm1haW5fYWZ0ZXJfaWZfZWxzZUAyOgogICAgLy8gc21hcnRfY29udHJhY3RzL2NvdW50ZXIvY29udHJhY3QucHk6NQogICAgLy8gY2xhc3MgQ291bnRlcihBUkM0Q29udHJhY3QpOgogICAgdHhuIE51bUFwcEFyZ3MKICAgIGJ6IG1haW5fYmFyZV9yb3V0aW5nQDYKICAgIHB1c2hieXRlcyAweDM2ZTcyOTI0IC8vIG1ldGhvZCAiaW5jcl9jb3VudGVyKCl1aW50NjQiCiAgICB0eG5hIEFwcGxpY2F0aW9uQXJncyAwCiAgICBtYXRjaCBtYWluX2luY3JfY291bnRlcl9yb3V0ZUA1CgptYWluX2FmdGVyX2lmX2Vsc2VAODoKICAgIC8vIHNtYXJ0X2NvbnRyYWN0cy9jb3VudGVyL2NvbnRyYWN0LnB5OjUKICAgIC8vIGNsYXNzIENvdW50ZXIoQVJDNENvbnRyYWN0KToKICAgIGludGNfMCAvLyAwCiAgICByZXR1cm4KCm1haW5faW5jcl9jb3VudGVyX3JvdXRlQDU6CiAgICAvLyBzbWFydF9jb250cmFjdHMvY291bnRlci9jb250cmFjdC5weToxMgogICAgLy8gQGFiaW1ldGhvZCgpCiAgICB0eG4gT25Db21wbGV0aW9uCiAgICAhCiAgICBhc3NlcnQgLy8gT25Db21wbGV0aW9uIGlzIG5vdCBOb09wCiAgICB0eG4gQXBwbGljYXRpb25JRAogICAgYXNzZXJ0IC8vIGNhbiBvbmx5IGNhbGwgd2hlbiBub3QgY3JlYXRpbmcKICAgIGNhbGxzdWIgaW5jcl9jb3VudGVyCiAgICBpdG9iCiAgICBwdXNoYnl0ZXMgMHgxNTFmN2M3NQogICAgc3dhcAogICAgY29uY2F0CiAgICBsb2cKICAgIGludGNfMSAvLyAxCiAgICByZXR1cm4KCm1haW5fYmFyZV9yb3V0aW5nQDY6CiAgICAvLyBzbWFydF9jb250cmFjdHMvY291bnRlci9jb250cmFjdC5weTo1CiAgICAvLyBjbGFzcyBDb3VudGVyKEFSQzRDb250cmFjdCk6CiAgICB0eG4gT25Db21wbGV0aW9uCiAgICBibnogbWFpbl9hZnRlcl9pZl9lbHNlQDgKICAgIHR4biBBcHBsaWNhdGlvbklECiAgICAhCiAgICBhc3NlcnQgLy8gY2FuIG9ubHkgY2FsbCB3aGVuIGNyZWF0aW5nCiAgICBpbnRjXzEgLy8gMQogICAgcmV0dXJuCgoKLy8gc21hcnRfY29udHJhY3RzLmNvdW50ZXIuY29udHJhY3QuQ291bnRlci5pbmNyX2NvdW50ZXIoKSAtPiB1aW50NjQ6CmluY3JfY291bnRlcjoKICAgIC8vIHNtYXJ0X2NvbnRyYWN0cy9jb3VudGVyL2NvbnRyYWN0LnB5OjE0CiAgICAvLyBzZWxmLmNvdW50ICs9IFVJbnQ2NCgxKQogICAgaW50Y18wIC8vIDAKICAgIGJ5dGVjXzAgLy8gImNvdW50IgogICAgYXBwX2dsb2JhbF9nZXRfZXgKICAgIGFzc2VydCAvLyBjaGVjayBzZWxmLmNvdW50IGV4aXN0cwogICAgaW50Y18xIC8vIDEKICAgICsKICAgIGJ5dGVjXzAgLy8gImNvdW50IgogICAgc3dhcAogICAgYXBwX2dsb2JhbF9wdXQKICAgIC8vIHNtYXJ0X2NvbnRyYWN0cy9jb3VudGVyL2NvbnRyYWN0LnB5OjE1CiAgICAvLyByZXR1cm4gc2VsZi5jb3VudAogICAgaW50Y18wIC8vIDAKICAgIGJ5dGVjXzAgLy8gImNvdW50IgogICAgYXBwX2dsb2JhbF9nZXRfZXgKICAgIGFzc2VydCAvLyBjaGVjayBzZWxmLmNvdW50IGV4aXN0cwogICAgcmV0c3ViCg==", "clear": "I3ByYWdtYSB2ZXJzaW9uIDEwCiNwcmFnbWEgdHlwZXRyYWNrIGZhbHNlCgovLyBhbGdvcHkuYXJjNC5BUkM0Q29udHJhY3QuY2xlYXJfc3RhdGVfcHJvZ3JhbSgpIC0+IHVpbnQ2NDoKbWFpbjoKICAgIHB1c2hpbnQgMSAvLyAxCiAgICByZXR1cm4K"}, "sourceInfo": {"approval": {"pcOffsetMethod": "none", "sourceInfo": [{"pc": [44], "errorMessage": "OnCompletion is not NoOp"}, {"pc": [71], "errorMessage": "can only call when creating"}, {"pc": [47], "errorMessage": "can only call when not creating"}, {"pc": [77, 86], "errorMessage": "check self.count exists"}]}, "clear": {"pcOffsetMethod": "none", "sourceInfo": []}}, "templateVariables": {}}"""
+_APP_SPEC_JSON = r"""{"arcs": [22, 28], "bareActions": {"call": [], "create": []}, "methods": [{"actions": {"call": [], "create": ["NoOp"]}, "args": [], "name": "create", "returns": {"type": "void"}, "events": [], "readonly": false, "recommendations": {}}, {"actions": {"call": ["NoOp"], "create": []}, "args": [], "name": "incr_counter", "returns": {"type": "uint64"}, "events": [], "readonly": false, "recommendations": {}}], "name": "Counter", "state": {"keys": {"box": {}, "global": {"count": {"key": "Y291bnQ=", "keyType": "AVMString", "valueType": "AVMUint64"}}, "local": {}}, "maps": {"box": {}, "global": {}, "local": {}}, "schema": {"global": {"bytes": 0, "ints": 1}, "local": {"bytes": 0, "ints": 0}}}, "structs": {}, "byteCode": {"approval": "CiACAAEmAQVjb3VudDEYQAADKCJnMRtBABWCAgRMXGG6BDbnKSQ2GgCOAgAYAAIiQzEZFEQxGESIAB0WgAQVH3x1TFCwI0MxGRREMRgURIgAAiNDKCJniSIoZUQjCChMZyIoZUSJ", "clear": "CoEBQw=="}, "compilerInfo": {"compiler": "puya", "compilerVersion": {"major": 4, "minor": 7, "patch": 0}}, "events": [], "networks": {}, "source": {"approval": "I3ByYWdtYSB2ZXJzaW9uIDEwCiNwcmFnbWEgdHlwZXRyYWNrIGZhbHNlCgovLyBzbWFydF9jb250cmFjdHMuY291bnRlci5jb250cmFjdC5Db3VudGVyLl9fYWxnb3B5X2VudHJ5cG9pbnRfd2l0aF9pbml0KCkgLT4gdWludDY0OgptYWluOgogICAgaW50Y2Jsb2NrIDAgMQogICAgYnl0ZWNibG9jayAiY291bnQiCiAgICB0eG4gQXBwbGljYXRpb25JRAogICAgYm56IG1haW5fYWZ0ZXJfaWZfZWxzZUAyCiAgICAvLyBzbWFydF9jb250cmFjdHMvY291bnRlci9jb250cmFjdC5weToxMAogICAgLy8gc2VsZi5jb3VudCA9IFVJbnQ2NCgwKQogICAgYnl0ZWNfMCAvLyAiY291bnQiCiAgICBpbnRjXzAgLy8gMAogICAgYXBwX2dsb2JhbF9wdXQKCm1haW5fYWZ0ZXJfaWZfZWxzZUAyOgogICAgLy8gc21hcnRfY29udHJhY3RzL2NvdW50ZXIvY29udHJhY3QucHk6NQogICAgLy8gY2xhc3MgQ291bnRlcihBUkM0Q29udHJhY3QpOgogICAgdHhuIE51bUFwcEFyZ3MKICAgIGJ6IG1haW5fYWZ0ZXJfaWZfZWxzZUA3CiAgICBwdXNoYnl0ZXNzIDB4NGM1YzYxYmEgMHgzNmU3MjkyNCAvLyBtZXRob2QgImNyZWF0ZSgpdm9pZCIsIG1ldGhvZCAiaW5jcl9jb3VudGVyKCl1aW50NjQiCiAgICB0eG5hIEFwcGxpY2F0aW9uQXJncyAwCiAgICBtYXRjaCBtYWluX2NyZWF0ZV9yb3V0ZUA1IG1haW5faW5jcl9jb3VudGVyX3JvdXRlQDYKCm1haW5fYWZ0ZXJfaWZfZWxzZUA3OgogICAgLy8gc21hcnRfY29udHJhY3RzL2NvdW50ZXIvY29udHJhY3QucHk6NQogICAgLy8gY2xhc3MgQ291bnRlcihBUkM0Q29udHJhY3QpOgogICAgaW50Y18wIC8vIDAKICAgIHJldHVybgoKbWFpbl9pbmNyX2NvdW50ZXJfcm91dGVANjoKICAgIC8vIHNtYXJ0X2NvbnRyYWN0cy9jb3VudGVyL2NvbnRyYWN0LnB5OjE2CiAgICAvLyBAYWJpbWV0aG9kKCkKICAgIHR4biBPbkNvbXBsZXRpb24KICAgICEKICAgIGFzc2VydCAvLyBPbkNvbXBsZXRpb24gaXMgbm90IE5vT3AKICAgIHR4biBBcHBsaWNhdGlvbklECiAgICBhc3NlcnQgLy8gY2FuIG9ubHkgY2FsbCB3aGVuIG5vdCBjcmVhdGluZwogICAgY2FsbHN1YiBpbmNyX2NvdW50ZXIKICAgIGl0b2IKICAgIHB1c2hieXRlcyAweDE1MWY3Yzc1CiAgICBzd2FwCiAgICBjb25jYXQKICAgIGxvZwogICAgaW50Y18xIC8vIDEKICAgIHJldHVybgoKbWFpbl9jcmVhdGVfcm91dGVANToKICAgIC8vIHNtYXJ0X2NvbnRyYWN0cy9jb3VudGVyL2NvbnRyYWN0LnB5OjEyCiAgICAvLyBAYWJpbWV0aG9kKGNyZWF0ZSA9ICJyZXF1aXJlIikKICAgIHR4biBPbkNvbXBsZXRpb24KICAgICEKICAgIGFzc2VydCAvLyBPbkNvbXBsZXRpb24gaXMgbm90IE5vT3AKICAgIHR4biBBcHBsaWNhdGlvbklECiAgICAhCiAgICBhc3NlcnQgLy8gY2FuIG9ubHkgY2FsbCB3aGVuIGNyZWF0aW5nCiAgICBjYWxsc3ViIGNyZWF0ZQogICAgaW50Y18xIC8vIDEKICAgIHJldHVybgoKCi8vIHNtYXJ0X2NvbnRyYWN0cy5jb3VudGVyLmNvbnRyYWN0LkNvdW50ZXIuY3JlYXRlKCkgLT4gdm9pZDoKY3JlYXRlOgogICAgLy8gc21hcnRfY29udHJhY3RzL2NvdW50ZXIvY29udHJhY3QucHk6MTQKICAgIC8vIHNlbGYuY291bnQgPSBVSW50NjQoMCkKICAgIGJ5dGVjXzAgLy8gImNvdW50IgogICAgaW50Y18wIC8vIDAKICAgIGFwcF9nbG9iYWxfcHV0CiAgICByZXRzdWIKCgovLyBzbWFydF9jb250cmFjdHMuY291bnRlci5jb250cmFjdC5Db3VudGVyLmluY3JfY291bnRlcigpIC0+IHVpbnQ2NDoKaW5jcl9jb3VudGVyOgogICAgLy8gc21hcnRfY29udHJhY3RzL2NvdW50ZXIvY29udHJhY3QucHk6MTgKICAgIC8vIHNlbGYuY291bnQgKz0gVUludDY0KDEpCiAgICBpbnRjXzAgLy8gMAogICAgYnl0ZWNfMCAvLyAiY291bnQiCiAgICBhcHBfZ2xvYmFsX2dldF9leAogICAgYXNzZXJ0IC8vIGNoZWNrIHNlbGYuY291bnQgZXhpc3RzCiAgICBpbnRjXzEgLy8gMQogICAgKwogICAgYnl0ZWNfMCAvLyAiY291bnQiCiAgICBzd2FwCiAgICBhcHBfZ2xvYmFsX3B1dAogICAgLy8gc21hcnRfY29udHJhY3RzL2NvdW50ZXIvY29udHJhY3QucHk6MTkKICAgIC8vIHJldHVybiBzZWxmLmNvdW50CiAgICBpbnRjXzAgLy8gMAogICAgYnl0ZWNfMCAvLyAiY291bnQiCiAgICBhcHBfZ2xvYmFsX2dldF9leAogICAgYXNzZXJ0IC8vIGNoZWNrIHNlbGYuY291bnQgZXhpc3RzCiAgICByZXRzdWIK", "clear": "I3ByYWdtYSB2ZXJzaW9uIDEwCiNwcmFnbWEgdHlwZXRyYWNrIGZhbHNlCgovLyBhbGdvcHkuYXJjNC5BUkM0Q29udHJhY3QuY2xlYXJfc3RhdGVfcHJvZ3JhbSgpIC0+IHVpbnQ2NDoKbWFpbjoKICAgIHB1c2hpbnQgMSAvLyAxCiAgICByZXR1cm4K"}, "sourceInfo": {"approval": {"pcOffsetMethod": "none", "sourceInfo": [{"pc": [52, 74], "errorMessage": "OnCompletion is not NoOp"}, {"pc": [78], "errorMessage": "can only call when creating"}, {"pc": [55], "errorMessage": "can only call when not creating"}, {"pc": [91, 100], "errorMessage": "check self.count exists"}]}, "clear": {"pcOffsetMethod": "none", "sourceInfo": []}}, "templateVariables": {}}"""
 APP_SPEC = algokit_utils.Arc56Contract.from_json(_APP_SPEC_JSON)
 
 def _parse_abi_args(args: object | None = None) -> list[object] | None:
@@ -79,6 +79,17 @@ class CounterParams:
             "method": "incr_counter()uint64",
         }))
 
+    def create(
+        self,
+        params: algokit_utils.CommonAppCallParams | None = None
+    ) -> algokit_utils.AppCallMethodCallParams:
+    
+        params = params or algokit_utils.CommonAppCallParams()
+        return self.app_client.params.call(algokit_utils.AppClientMethodCallParams(**{
+            **dataclasses.asdict(params),
+            "method": "create()void",
+        }))
+
     def clear_state(
         self,
         params: algokit_utils.AppClientBareCallParams | None = None,
@@ -103,6 +114,17 @@ class CounterCreateTransactionParams:
         return self.app_client.create_transaction.call(algokit_utils.AppClientMethodCallParams(**{
             **dataclasses.asdict(params),
             "method": "incr_counter()uint64",
+        }))
+
+    def create(
+        self,
+        params: algokit_utils.CommonAppCallParams | None = None
+    ) -> algokit_utils.BuiltTransactions:
+    
+        params = params or algokit_utils.CommonAppCallParams()
+        return self.app_client.create_transaction.call(algokit_utils.AppClientMethodCallParams(**{
+            **dataclasses.asdict(params),
+            "method": "create()void",
         }))
 
     def clear_state(
@@ -133,6 +155,20 @@ class CounterSend:
         }), send_params=send_params)
         parsed_response = response
         return typing.cast(algokit_utils.SendAppTransactionResult[int], parsed_response)
+
+    def create(
+        self,
+        params: algokit_utils.CommonAppCallParams | None = None,
+        send_params: algokit_utils.SendParams | None = None
+    ) -> algokit_utils.SendAppTransactionResult[None]:
+    
+        params = params or algokit_utils.CommonAppCallParams()
+        response = self.app_client.send.call(algokit_utils.AppClientMethodCallParams(**{
+            **dataclasses.asdict(params),
+            "method": "create()void",
+        }), send_params=send_params)
+        parsed_response = response
+        return typing.cast(algokit_utils.SendAppTransactionResult[None], parsed_response)
 
     def clear_state(
         self,
@@ -345,6 +381,12 @@ class CounterClient:
     @typing.overload
     def decode_return_value(
         self,
+        method: typing.Literal["create()void"],
+        return_value: algokit_utils.ABIReturn | None
+    ) -> None: ...
+    @typing.overload
+    def decode_return_value(
+        self,
         method: str,
         return_value: algokit_utils.ABIReturn | None
     ) -> algokit_utils.ABIValue | algokit_utils.ABIStruct | None: ...
@@ -373,14 +415,27 @@ class CounterClient:
 
 
 @dataclasses.dataclass(frozen=True)
-class CounterBareCallCreateParams(algokit_utils.AppClientBareCallCreateParams):
-    """Parameters for creating Counter contract with bare calls"""
+class CounterMethodCallCreateParams(
+    algokit_utils.AppClientCreateSchema, algokit_utils.BaseAppClientMethodCallParams[
+        typing.Any,
+        str | None,
+    ]
+):
+    """Parameters for creating Counter contract using ABI"""
     on_complete: typing.Literal[OnComplete.NoOpOC] | None = None
+    method: str | None = None
 
-    def to_algokit_utils_params(self) -> algokit_utils.AppClientBareCallCreateParams:
-        return algokit_utils.AppClientBareCallCreateParams(**self.__dict__)
+    def to_algokit_utils_params(self) -> algokit_utils.AppClientMethodCallCreateParams:
+        method_args = _parse_abi_args(self.args)
+        return algokit_utils.AppClientMethodCallCreateParams(
+            **{
+                **self.__dict__,
+                "method": self.method or getattr(self.args, "abi_method_signature", None),
+                "args": method_args,
+            }
+        )
 
-class CounterFactory(algokit_utils.TypedAppFactoryProtocol[CounterBareCallCreateParams, None, None]):
+class CounterFactory(algokit_utils.TypedAppFactoryProtocol[CounterMethodCallCreateParams, None, None]):
     """Factory for deploying and managing CounterClient smart contracts"""
 
     def __init__(
@@ -425,7 +480,7 @@ class CounterFactory(algokit_utils.TypedAppFactoryProtocol[CounterBareCallCreate
         *,
         on_update: algokit_utils.OnUpdate | None = None,
         on_schema_break: algokit_utils.OnSchemaBreak | None = None,
-        create_params: CounterBareCallCreateParams | None = None,
+        create_params: CounterMethodCallCreateParams | None = None,
         update_params: None = None,
         delete_params: None = None,
         existing_deployments: algokit_utils.ApplicationLookup | None = None,
@@ -543,6 +598,25 @@ class CounterFactoryCreateParams:
             compilation_params=compilation_params
         )
 
+    def create(
+        self,
+        *,
+        params: algokit_utils.CommonAppCallCreateParams | None = None,
+        compilation_params: algokit_utils.AppClientCompilationParams | None = None
+    ) -> algokit_utils.AppCreateMethodCallParams:
+        """Creates a new instance using the create()void ABI method"""
+        params = params or algokit_utils.CommonAppCallCreateParams()
+        return self.app_factory.params.create(
+            algokit_utils.AppFactoryCreateMethodCallParams(
+                **{
+                **dataclasses.asdict(params),
+                "method": "create()void",
+                "args": None,
+                }
+            ),
+            compilation_params=compilation_params
+        )
+
 class CounterFactoryUpdateParams:
     """Parameters for 'update' operations of Counter contract"""
 
@@ -635,6 +709,43 @@ class CounterFactorySendCreate:
         )
         return CounterClient(result[0]), result[1]
 
+    def create(
+        self,
+        *,
+        params: algokit_utils.CommonAppCallCreateParams | None = None,
+        send_params: algokit_utils.SendParams | None = None,
+        compilation_params: algokit_utils.AppClientCompilationParams | None = None
+    ) -> tuple[CounterClient, algokit_utils.AppFactoryCreateMethodCallResult[None]]:
+            """Creates and sends a transaction using the create()void ABI method"""
+            params = params or algokit_utils.CommonAppCallCreateParams()
+            client, result = self.app_factory.send.create(
+                algokit_utils.AppFactoryCreateMethodCallParams(
+                    **{
+                    **dataclasses.asdict(params),
+                    "method": "create()void",
+                    "args": None,
+                    }
+                ),
+                send_params=send_params,
+                compilation_params=compilation_params
+            )
+            return_value = None if result.abi_return is None else typing.cast(None, result.abi_return)
+    
+            return CounterClient(client), algokit_utils.AppFactoryCreateMethodCallResult[None](
+                **{
+                    **result.__dict__,
+                    "app_id": result.app_id,
+                    "abi_return": return_value,
+                    "transaction": result.transaction,
+                    "confirmation": result.confirmation,
+                    "group_id": result.group_id,
+                    "tx_ids": result.tx_ids,
+                    "transactions": result.transactions,
+                    "confirmations": result.confirmations,
+                    "app_address": result.app_address,
+                }
+            )
+
 
 class CounterComposer:
     """Composer for creating transaction groups for Counter contract calls"""
@@ -657,6 +768,23 @@ class CounterComposer:
         self._result_mappers.append(
             lambda v: self.client.decode_return_value(
                 "incr_counter()uint64", v
+            )
+        )
+        return self
+
+    def create(
+        self,
+        params: algokit_utils.CommonAppCallParams | None = None
+    ) -> "CounterComposer":
+        self._composer.add_app_call_method_call(
+            self.client.params.create(
+                
+                params=params,
+            )
+        )
+        self._result_mappers.append(
+            lambda v: self.client.decode_return_value(
+                "create()void", v
             )
         )
         return self
