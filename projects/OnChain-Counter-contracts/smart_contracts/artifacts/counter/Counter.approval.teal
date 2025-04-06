@@ -17,18 +17,18 @@ main_after_if_else@2:
     // smart_contracts/counter/contract.py:5
     // class Counter(ARC4Contract):
     txn NumAppArgs
-    bz main_after_if_else@7
-    pushbytess 0x4c5c61ba 0x36e72924 // method "create()void", method "incr_counter()uint64"
+    bz main_bare_routing@6
+    pushbytes 0x36e72924 // method "incr_counter()uint64"
     txna ApplicationArgs 0
-    match main_create_route@5 main_incr_counter_route@6
+    match main_incr_counter_route@5
 
-main_after_if_else@7:
+main_after_if_else@8:
     // smart_contracts/counter/contract.py:5
     // class Counter(ARC4Contract):
     intc_0 // 0
     return
 
-main_incr_counter_route@6:
+main_incr_counter_route@5:
     // smart_contracts/counter/contract.py:16
     // @abimethod()
     txn OnCompletion
@@ -45,28 +45,16 @@ main_incr_counter_route@6:
     intc_1 // 1
     return
 
-main_create_route@5:
-    // smart_contracts/counter/contract.py:12
-    // @abimethod(create = "require")
+main_bare_routing@6:
+    // smart_contracts/counter/contract.py:5
+    // class Counter(ARC4Contract):
     txn OnCompletion
-    !
-    assert // OnCompletion is not NoOp
+    bnz main_after_if_else@8
     txn ApplicationID
     !
     assert // can only call when creating
-    callsub create
     intc_1 // 1
     return
-
-
-// smart_contracts.counter.contract.Counter.create() -> void:
-create:
-    // smart_contracts/counter/contract.py:14
-    // self.count = UInt64(0)
-    bytec_0 // "count"
-    intc_0 // 0
-    app_global_put
-    retsub
 
 
 // smart_contracts.counter.contract.Counter.incr_counter() -> uint64:

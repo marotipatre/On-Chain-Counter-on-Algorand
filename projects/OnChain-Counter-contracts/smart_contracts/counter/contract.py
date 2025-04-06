@@ -9,9 +9,9 @@ class Counter(ARC4Contract):
     def __init__(self) -> None:
         self.count = UInt64(0)   
 
-    @abimethod(create = "require")
-    def create(self) -> None:
-        self.count = UInt64(0)
+    # @abimethod(create = "require")
+    # def create(self) -> None:
+    #     self.count = UInt64(0)
 
     @abimethod()
     def incr_counter(self)-> UInt64:

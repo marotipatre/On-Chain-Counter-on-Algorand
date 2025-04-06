@@ -53,11 +53,18 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
         algorand,
       })
       
-      const deployResult = await factory.deploy({
-        onSchemaBreak: OnSchemaBreak.AppendApp,
-        onUpdate: OnUpdate.AppendApp,
-      })
+      
+      // Deploy multiple addresses with the same contract
+      const deployResult = await factory.send.create.bare()
 
+      // Use When you want to deploy application once from one address
+      // const deployResult = await factory.deploy({
+      //   onSchemaBreak: OnSchemaBreak.AppendApp,
+      //   onUpdate: OnUpdate.AppendApp,})
+
+
+
+      // if i have added create = require to any method , use this to deploy a
       // const deployResult = await factory.send.create.create()
       
       const deployedAppId = Number(deployResult.appClient.appId)
