@@ -25,6 +25,8 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
     algodConfig,
     indexerConfig,
   })
+  
+  
   algorand.setDefaultSigner(TransactionSigner)
 
   // Separate function to fetch current count
