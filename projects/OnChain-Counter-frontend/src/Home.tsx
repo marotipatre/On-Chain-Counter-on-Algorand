@@ -45,7 +45,7 @@ const Home: React.FC<HomeProps> = () => {
               className="btn bg-teal-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:bg-teal-700 transition"
               onClick={toggleAppCallsModal}
             >
-              Open Contract Interactions
+              Try On-Chain Counter
             </button>
           )}
         </div>

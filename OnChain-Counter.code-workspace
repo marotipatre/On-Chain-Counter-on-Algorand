@@ -9,26 +9,37 @@
     },
     {
       "path": "./projects/OnChain-Counter-frontend"
+    },
+    {
+      "path": "projects/Multisig_implementation"
     }
   ],
   "settings": {
     "files.exclude": {
       "projects/": true
     },
-    "jest.disabledWorkspaceFolders": ["ROOT", "projects"],
+    "jest.disabledWorkspaceFolders": [
+      "ROOT",
+      "projects"
+    ],
     "dotenv.enableAutocloaking": false
   },
   "extensions": {
-    "recommendations": ["joshx.workspace-terminals"]
+    "recommendations": [
+      "joshx.workspace-terminals"
+    ]
   },
-  
   "tasks": {
     "version": "2.0.0",
     "tasks": [
       {
         "label": "Build artifacts (+ LocalNet)",
         "command": "algokit",
-        "args": ["project", "run", "build"],
+        "args": [
+          "project",
+          "run",
+          "build"
+        ],
         "options": {
           "cwd": "${workspaceFolder}"
         },
@@ -38,7 +49,10 @@
       {
         "label": "Start AlgoKit LocalNet",
         "command": "algokit",
-        "args": ["localnet", "start"],
+        "args": [
+          "localnet",
+          "start"
+        ],
         "type": "shell",
         "options": {
           "cwd": "${workspaceFolder}"
@@ -58,7 +72,10 @@
             "name": "Deploy contracts",
             "folder": "OnChain-Counter-contracts"
           },
-          { "name": "Run dApp", "folder": "OnChain-Counter-frontend" }
+          {
+            "name": "Run dApp",
+            "folder": "OnChain-Counter-frontend"
+          }
         ],
         "presentation": {
           "hidden": false,
@@ -67,4 +84,4 @@
       }
     ]
   }
-  }
+}
