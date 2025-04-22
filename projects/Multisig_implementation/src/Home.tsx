@@ -9,7 +9,7 @@ interface HomeProps {}
 const Home: React.FC<HomeProps> = () => {
   const [openWalletModal, setOpenWalletModal] = useState<boolean>(false)
   const [openDemoModal, setOpenDemoModal] = useState<boolean>(false)
-  const { activeAddress } = useWallet()
+  const { activeWalletAddresses } = useWallet()
 
   const toggleWalletModal = () => {
     setOpenWalletModal(!openWalletModal)
@@ -45,7 +45,7 @@ const Home: React.FC<HomeProps> = () => {
               Wallet Connection
             </button>
 
-            {activeAddress && (
+            {activeWalletAddresses && (
               <button data-test-id="transactions-demo" className="btn m-2" onClick={toggleDemoModal}>
                 Transactions Demo
               </button>

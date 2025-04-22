@@ -18,12 +18,12 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
 
   const { enqueueSnackbar } = useSnackbar()
 
-  const { transactionSigner, activeAddress } = useWallet()
+  const { transactionSigner, activeWalletAddresses } = useWallet()
 
   const handleSubmitAlgo = async () => {
     setLoading(true)
 
-    if (!transactionSigner || !activeAddress) {
+    if (!transactionSigner || !activeWalletAddresses || !activeWalletAddresses[0]) {
       enqueueSnackbar('Please connect wallet first', { variant: 'warning' })
       return
     }
@@ -32,7 +32,7 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
       enqueueSnackbar('Sending transaction...', { variant: 'info' })
       const result = await algorand.send.payment({
         signer: transactionSigner,
-        sender: activeAddress,
+        sender: activeWalletAddresses[0],
         receiver: receiverAddress,
         amount: algo(1),
       })
