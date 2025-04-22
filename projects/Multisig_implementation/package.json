@@ -49,7 +49,7 @@
   },
   "scripts": {
     "generate:app-clients": "algokit project link --all",
-    "dev": "npm run generate:app-clients && vite",
+    "dev": "vite",
     "build": "npm run generate:app-clients && tsc && vite build",
     "test": "jest --coverage --passWithNoTests",
     "playwright:test": "playwright test",
