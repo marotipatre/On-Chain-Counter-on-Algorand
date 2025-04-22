@@ -66,7 +66,7 @@ const AppCalls = ({ openModal, setModalState }: AppCallsInterface) => {
 
 
 
-      // if i have added create = require to any method , use this to deploy a
+      // if i have added create = require to any method , use this to deploy contract
       // const deployResult = await factory.send.create.create()
       
       const deployedAppId = Number(deployResult.appClient.appId)
