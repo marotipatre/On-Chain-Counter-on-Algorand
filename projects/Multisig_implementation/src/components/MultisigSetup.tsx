@@ -98,7 +98,7 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
         sender: activeAddress || '',
         receiver: multisigAddr,
         signer: transactionSigner,
-        amount: algo(2),
+        amount: algo(0.2),
         note: 'Funding multisig account',
       })
 
@@ -111,7 +111,7 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: multisigAddr,
         receiver: receiverAddress,
-        amount: algo(0.2).microAlgos,
+        amount: algo(0.09).microAlgos,
         suggestedParams,
         note: new Uint8Array(Buffer.from('Multisig transaction from random accounts')),
       })
