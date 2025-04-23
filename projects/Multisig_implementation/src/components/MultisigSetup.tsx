@@ -1,178 +1,164 @@
-import { useState } from 'react'
+import { algo, AlgorandClient } from '@algorandfoundation/algokit-utils'
 import { useWallet } from '@txnlab/use-wallet-react'
-import { 
-  AlgoAmount, 
-  getTransactionParams, 
-  sendTransaction,
-  microAlgos,
-  MultisigAccount,
-  Transaction
-} from '@algorandfoundation/algokit-utils'
+import { useSnackbar } from 'notistack'
+import { useState } from 'react'
+import algosdk from 'algosdk'
+import { getAlgodConfigFromViteEnvironment } from '../utils/network/getAlgoClientConfigs'
 
-interface MultisigSetupProps {
-  threshold: number
+interface TransactInterface {
+  openModal: boolean
+  setModalState: (value: boolean) => void
 }
 
-const MultisigSetup = ({ threshold }: MultisigSetupProps) => {
-  const { wallets, activeAddress } = useWallet()
-  const [multisigAccount, setMultisigAccount] = useState<MultisigAccount | null>(null)
-  const [signers, setSigners] = useState<string[]>([])
-  const [pendingTxns, setPendingTxns] = useState<{txn: Transaction; receiver: string; amount: number}[]>([])
+const Transact = ({ openModal, setModalState }: TransactInterface) => {
+  const [loading, setLoading] = useState<boolean>(false)
+  const [receiverAddress, setReceiverAddress] = useState<string>('')
 
-  // Add a wallet as a signer
-  const addSigner = (address: string) => {
-    if (!signers.includes(address)) {
-      setSigners([...signers, address])
-    }
-  }
+  const algodConfig = getAlgodConfigFromViteEnvironment()
+  const algorand = AlgorandClient.fromConfig({ algodConfig })
 
-  // Create the multisig account
-  const createMultisigAccount = async () => {
-    if (signers.length < threshold) {
-      alert(`Need at least ${threshold} signers`)
-      return
-    }
+  const { enqueueSnackbar } = useSnackbar()
+  const { activeAddress, transactionSigner } = useWallet()
 
-    const account = new MultisigAccount({
-      version: 1,
-      threshold,
-      addrs: signers
-    })
-
-    setMultisigAccount(account)
-    return account
-  }
-
-  // Create and sign a transaction with the multisig account
-  const createMultisigTransaction = async (receiver: string, amount: number) => {
-    if (!multisigAccount) {
-      alert('Create multisig account first')
-      return
-    }
-
-    const suggestedParams = await getTransactionParams()
-
-    const txn = multisigAccount.createTransaction({
-      type: 'pay',
-      from: multisigAccount.address,
-      to: receiver,
-      amount: microAlgos(amount),
-      suggestedParams,
-      note: 'Multisig transaction'
-    })
-
-    // For each signer, get their wallet to sign
-    const signedTxns = await Promise.all(
-      signers.map(async signerAddr => {
-        const wallet = wallets.find(w => w.accounts.includes(signerAddr))
-        if (!wallet) return null
-        
-        // Sign the transaction with the wallet
-        const signedTxn = await wallet.signTransactions([txn.toByte()])
-        return signedTxn[0]
-      })
-    ).then(results => results.filter(Boolean))
-
-    if (signedTxns.length < threshold) {
-      alert(`Not enough signatures (${signedTxns.length}/${threshold})`)
-      return
-    }
-
-    // Combine signatures into a single multisig transaction
-    const combinedTxn = multisigAccount.combineSignedTransactions(signedTxns)
+  const showTransactionOnAlgoExplorer = (txId: string) => {
+    const explorerUrl = `https://lora.algokit.io/testnet/transaction/${txId}`
+    window.open(explorerUrl, '_blank')
     
-    // Add to pending transactions (for UI) or submit immediately
-    setPendingTxns([...pendingTxns, {
-      txn: combinedTxn,
-      receiver,
-      amount
-    }])
+    // Show alert with clickable link
+    alert(`Transaction completed!\n\nView on AlgoExplorer: ${explorerUrl}\n\nClick OK to open in new tab.`)
   }
 
-  // Submit a pending transaction
-  const submitTransaction = async (combinedTxn: Uint8Array) => {
-    try {
-      const result = await sendTransaction(combinedTxn)
-      // Remove from pending
-      setPendingTxns(pendingTxns.filter(t => t.txn !== combinedTxn))
-      return result
-    } catch (error) {
-      console.error('Transaction failed', error)
-      return null
+  const handleSubmitAlgo = async () => {
+    setLoading(true)
+
+    if (!receiverAddress) {
+      enqueueSnackbar('Please enter receiver address', { variant: 'warning' })
+      setLoading(false)
+      return
     }
+
+    try {
+      enqueueSnackbar('Creating multisig with random accounts...', { variant: 'info' })
+
+      // 1. Create random accounts
+      const randomAccountA = algosdk.generateAccount()
+      const randomAccountB = algosdk.generateAccount()
+      const randomAccountC = algosdk.generateAccount()
+
+      // 2. Create multisig account
+      const multisigParams = {
+        version: 1,
+        threshold: 2,
+        addrs: [
+          randomAccountA.addr,
+          randomAccountB.addr,
+          randomAccountC.addr
+        ]
+      }
+
+      const multisigAddr = algosdk.multisigAddress(multisigParams)
+
+      // Fetch authToken from environment variables
+      const My_authToken = import.meta.env.VITE_ALGOKIT_DISPENSER_ACCESS_TOKEN
+      if (!My_authToken) {
+        throw new Error('Auth token is missing. Please set VITE_ALGOKIT_DISPENSER_ACCESS_TOKEN in your .env file.')
+            }
+
+
+      const testfundtx = await algorand.account.ensureFundedFromTestNetDispenserApi(multisigAddr, algorand.client.getTestNetDispenser({ authToken: My_authToken, requestTimeout: 15 }), algo(2))
+
+      if (testfundtx?.transactionId) {
+        await algosdk.waitForConfirmation(algorand.client.algod, testfundtx.transactionId, 4)
+      } else {
+        throw new Error('Transaction ID is undefined')
+      }
+
+      // 3. Fund the multisig account (using your connected wallet)
+      // const fundTx = await algorand.send.payment({
+      //   sender: activeAddress || '',
+      //   receiver: multisigAddr,
+      //   signer: transactionSigner,
+      //   amount: algo(2),
+      //   note: 'Funding multisig account',
+      // })
+
+      // // Wait for funding transaction to complete
+      // await algosdk.waitForConfirmation(algorand.client.algod, fundTx.txIds[0], 4)
+
+      // 4. Create transaction from multisig
+      const suggestedParams = await algorand.client.algod.getTransactionParams().do()
+
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: multisigAddr,
+        receiver: receiverAddress,
+        amount: algo(1).microAlgos,
+        suggestedParams,
+        note: new Uint8Array(Buffer.from('Multisig transaction from random accounts')),
+      })
+
+      // 5. Sign with required accounts (2 of 3)
+      const signedTxn1 = algosdk.signMultisigTransaction(
+        txn,
+        multisigParams,
+        randomAccountA.sk
+      ).blob
+
+      const signedTxn2 = algosdk.signMultisigTransaction(
+        txn,
+        multisigParams,
+        randomAccountB.sk
+      ).blob
+
+      // 6. Combine and send
+      const combinedTx = algosdk.mergeMultisigTransactions([signedTxn1, signedTxn2])
+      const response = await algorand.client.algod.sendRawTransaction(combinedTx).do()
+      const txId = response.txid
+
+      // Wait for transaction confirmation
+      await algosdk.waitForConfirmation(algorand.client.algod, txId, 4)
+
+      // Show success message and transaction link
+      enqueueSnackbar(`Multisig transaction successful!`, { variant: 'success' })
+      showTransactionOnAlgoExplorer(txId)
+      
+      setReceiverAddress('')
+    } catch (e) {
+      console.error('Multisig error:', e)
+      enqueueSnackbar(`Failed to create multisig: ${(e as Error).message}`, { variant: 'error' })
+    }
+
+    setLoading(false)
   }
 
   return (
-    <div className="multisig-container">
-      <h2>Multisig Wallet Setup</h2>
-      
-      <div className="signers-section">
-        <h3>Connected Wallets</h3>
-        {wallets.filter(w => w.isConnected).map(wallet => (
-          <div key={wallet.id} className="wallet-item">
-            <span>{wallet.metadata.name}</span>
-            <span>{wallet.accounts[0]}</span>
-            <button 
-              onClick={() => addSigner(wallet.accounts[0])}
-              disabled={signers.includes(wallet.accounts[0])}
-            >
-              Add as Signer
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="multisig-section">
-        <h3>Multisig Account</h3>
-        <div>
-          <p>Signers: {signers.length} (Threshold: {threshold})</p>
-          <button onClick={createMultisigAccount} disabled={signers.length < threshold}>
-            Create Multisig Account
+    <dialog id="transact_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
+      <form method="dialog" className="modal-box">
+        <h3 className="font-bold text-lg">Send Multisig Transaction</h3>
+        <div className="py-4">
+          <p className="text-sm mb-2">Using randomly generated multisig accounts</p>
+          <input
+            type="text"
+            placeholder="Receiver address"
+            className="input input-bordered w-full"
+            value={receiverAddress}
+            onChange={(e) => setReceiverAddress(e.target.value)}
+          />
+        </div>
+        <div className="modal-action">
+          <button className="btn" onClick={() => setModalState(false)}>
+            Close
           </button>
-          {multisigAccount && (
-            <div>
-              <p>Multisig Address: {multisigAccount.address}</p>
-              <button onClick={() => navigator.clipboard.writeText(multisigAccount.address)}>
-                Copy Address
-              </button>
-            </div>
-          )}
+          <button
+            className={`btn btn-primary ${loading ? 'loading' : ''}`}
+            onClick={handleSubmitAlgo}
+            disabled={loading || !receiverAddress}
+          >
+            {loading ? 'Processing...' : 'Send Transaction'}
+          </button>
         </div>
-      </div>
-
-      {multisigAccount && (
-        <div className="transaction-section">
-          <h3>Create Transaction</h3>
-          <div>
-            <input type="text" placeholder="Receiver Address" id="receiver" />
-            <input type="number" placeholder="Amount (microAlgos)" id="amount" />
-            <button onClick={() => {
-              const receiver = (document.getElementById('receiver') as HTMLInputElement).value
-              const amount = parseInt((document.getElementById('amount') as HTMLInputElement).value)
-              createMultisigTransaction(receiver, amount)
-            }}>
-              Create & Sign Transaction
-            </button>
-          </div>
-
-          {pendingTxns.length > 0 && (
-            <div className="pending-txns">
-              <h4>Pending Transactions</h4>
-              {pendingTxns.map((txn, index) => (
-                <div key={index} className="pending-txn">
-                  <p>To: {txn.receiver}</p>
-                  <p>Amount: {AlgoAmount.fromMicroAlgos(txn.amount).algos} ALGO</p>
-                  <button onClick={() => submitTransaction(txn.txn)}>
-                    Submit Transaction
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+      </form>
+    </dialog>
   )
 }
 
-export default MultisigSetup
+export default Transact
