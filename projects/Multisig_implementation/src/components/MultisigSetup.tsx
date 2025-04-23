@@ -17,17 +17,36 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
   const algodConfig = getAlgodConfigFromViteEnvironment()
   const algorand = AlgorandClient.fromConfig({ algodConfig })
 
-  const { enqueueSnackbar } = useSnackbar()
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar()
   const { activeAddress, transactionSigner } = useWallet()
 
   const showTransactionOnAlgoExplorer = (txId: string) => {
     const explorerUrl = `https://lora.algokit.io/testnet/transaction/${txId}`
-    window.open(explorerUrl, '_blank')
-    
-    // Show alert with clickable link
-    alert(`Transaction completed!\n\nView on AlgoExplorer: ${explorerUrl}\n\nClick OK to open in new tab.`)
+  
+    // Use Snackbar with a clickable link
+    enqueueSnackbar('Transaction completed!', {
+      variant: 'success',
+      action: (key) => (
+        <button
+          onClick={() => {
+            window.open(explorerUrl, '_blank')
+            // Optionally dismiss the snackbar
+            closeSnackbar(key)
+          }}
+          style={{
+            color: '#fff',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+          }}
+        >
+          View on AlgoExplorer
+        </button>
+      ),
+    })
   }
-
   const handleSubmitAlgo = async () => {
     setLoading(true)
 
@@ -58,32 +77,33 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
 
       const multisigAddr = algosdk.multisigAddress(multisigParams)
 
-      // Fetch authToken from environment variables
-      const My_authToken = import.meta.env.VITE_ALGOKIT_DISPENSER_ACCESS_TOKEN
-      if (!My_authToken) {
-        throw new Error('Auth token is missing. Please set VITE_ALGOKIT_DISPENSER_ACCESS_TOKEN in your .env file.')
-            }
+      // // funding from testnet dispenser - daily limit is 5 algos
+      // // Fetch authToken from environment variables
+      // const My_authToken = import.meta.env.VITE_ALGOKIT_DISPENSER_ACCESS_TOKEN
+      // if (!My_authToken) {
+      //   throw new Error('Auth token is missing. Please set VITE_ALGOKIT_DISPENSER_ACCESS_TOKEN in your .env file.')
+      //       }
 
 
-      const testfundtx = await algorand.account.ensureFundedFromTestNetDispenserApi(multisigAddr, algorand.client.getTestNetDispenser({ authToken: My_authToken, requestTimeout: 15 }), algo(2))
+      // const testfundtx = await algorand.account.ensureFundedFromTestNetDispenserApi(multisigAddr, algorand.client.getTestNetDispenser({ authToken: My_authToken, requestTimeout: 15 }), algo(1))
 
-      if (testfundtx?.transactionId) {
-        await algosdk.waitForConfirmation(algorand.client.algod, testfundtx.transactionId, 4)
-      } else {
-        throw new Error('Transaction ID is undefined')
-      }
+      // if (testfundtx?.transactionId) {
+      //   await algosdk.waitForConfirmation(algorand.client.algod, testfundtx.transactionId, 4)
+      // } else {
+      //   throw new Error('Transaction ID is undefined')
+      // }
 
       // 3. Fund the multisig account (using your connected wallet)
-      // const fundTx = await algorand.send.payment({
-      //   sender: activeAddress || '',
-      //   receiver: multisigAddr,
-      //   signer: transactionSigner,
-      //   amount: algo(2),
-      //   note: 'Funding multisig account',
-      // })
+      const fundTx = await algorand.send.payment({
+        sender: activeAddress || '',
+        receiver: multisigAddr,
+        signer: transactionSigner,
+        amount: algo(2),
+        note: 'Funding multisig account',
+      })
 
-      // // Wait for funding transaction to complete
-      // await algosdk.waitForConfirmation(algorand.client.algod, fundTx.txIds[0], 4)
+      // Wait for funding transaction to complete
+      await algosdk.waitForConfirmation(algorand.client.algod, fundTx.txIds[0], 4)
 
       // 4. Create transaction from multisig
       const suggestedParams = await algorand.client.algod.getTransactionParams().do()
@@ -91,7 +111,7 @@ const Transact = ({ openModal, setModalState }: TransactInterface) => {
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: multisigAddr,
         receiver: receiverAddress,
-        amount: algo(1).microAlgos,
+        amount: algo(0.2).microAlgos,
         suggestedParams,
         note: new Uint8Array(Buffer.from('Multisig transaction from random accounts')),
       })
