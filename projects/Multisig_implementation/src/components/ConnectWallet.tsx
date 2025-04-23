@@ -1,85 +1,75 @@
 import { useWallet, Wallet, WalletId } from '@txnlab/use-wallet-react'
-import { useEffect, useState } from 'react'
 
 interface ConnectWalletInterface {
   openModal: boolean
   closeModal: () => void
 }
 
-interface ConnectedWallet {
-  id: string
-  name: string
-  addresses: string[]
-  icon?: string
-}
-
 const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
-  const { wallets, activeWallet } = useWallet()
-  const [connectedWallets, setConnectedWallets] = useState<ConnectedWallet[]>([])
+  const { activeWalletAccounts, activeWalletAddresses, wallets } = useWallet()
 
   const isKmd = (wallet: Wallet) => wallet.id === WalletId.KMD
-
-  // Sync connected wallets with active wallet state
-  useEffect(() => {
-    if (!wallets) return
-
-    const updatedConnectedWallets = wallets
-      .filter(wallet => wallet.isConnected)
-      .map(wallet => ({
-        id: wallet.id,
-        name: isKmd(wallet) ? 'LocalNet Wallet' : wallet.metadata.name,
-        addresses: wallet.accounts.map(acc => acc.address),
-        icon: isKmd(wallet) ? undefined : wallet.metadata.icon
-      }))
-
-    setConnectedWallets(updatedConnectedWallets)
-  }, [wallets, activeWallet])
 
   return (
     <dialog id="connect_wallet_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
       <form method="dialog" className="modal-box max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-xl">
-            {connectedWallets.length ? 'Connected Wallets' : 'Connect Wallet'}
+            {activeWalletAddresses?.length ? 'Connected Accounts' : 'Connect Wallet'}
           </h3>
           <button onClick={closeModal} className="btn btn-sm btn-circle">✕</button>
         </div>
 
         <div className="space-y-4">
-          {/* Connected Wallets Section */}
-          {connectedWallets.length > 0 && (
+          {/* Connected Accounts Section */}
+          {(activeWalletAccounts ?? []).length > 0 && (
             <div className="bg-base-200 rounded-lg p-4">
-              <h4 className="font-medium mb-2">Your Wallets</h4>
+              <h4 className="font-medium mb-2">Your Accounts</h4>
               <div className="space-y-3">
-                {connectedWallets.map((wallet) => (
-                  <div key={wallet.id} className="bg-base-100 p-3 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      {wallet.icon && (
-                        <img src={wallet.icon} alt={wallet.name} className="w-6 h-6" />
-                      )}
-                      <span className="font-medium">{wallet.name}</span>
-                    </div>
-                    <div className="space-y-1">
-                      {wallet.addresses.map(address => (
-                        <div key={address} className="flex justify-between items-center">
-                          <span className="text-sm font-mono truncate w-40">{address}</span>
-                          <button
-                            className="btn btn-xs btn-error"
-                            onClick={async (e) => {
-                              e.preventDefault()
-                              const walletToDisconnect = wallets?.find(w => w.id === wallet.id)
-                              if (walletToDisconnect) {
-                                await walletToDisconnect.disconnect()
-                              }
-                            }}
-                          >
-                            Disconnect
-                          </button>
+                {activeWalletAccounts?.map((account, index) => {
+                  const wallet = wallets?.find(w => 
+                    w.accounts.some(acc => acc.address === account.address)
+                  )
+                  
+                  return (
+                    <div 
+                      key={`${account.name}-${account.address}`} 
+                      className="flex justify-between items-center bg-base-100 p-3 rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        {wallet && !isKmd(wallet) && (
+                          <img
+                            src={wallet.metadata.icon}
+                            alt={wallet.metadata.name}
+                            className="w-5 h-5"
+                          />
+                        )}
+                        <div>
+                          <div className="text-sm font-mono truncate w-40">
+                            {account.name || `Account ${index + 1}`}
+                          </div>
+                          <div className="text-xs opacity-70 font-mono truncate w-40">
+                            {account.address}
+                          </div>
                         </div>
-                      ))}
+                      </div>
+                      <button
+                        className="btn btn-xs btn-error"
+                        onClick={async (e) => {
+                          e.preventDefault()
+                          const walletToDisconnect = wallets?.find(w => 
+                            w.accounts.some(acc => acc.address === account.address)
+                          )
+                          if (walletToDisconnect) {
+                            await walletToDisconnect.disconnect()
+                          }
+                        }}
+                      >
+                        Disconnect
+                      </button>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
@@ -88,27 +78,50 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
           <div className="bg-base-200 rounded-lg p-4">
             <h4 className="font-medium mb-2">Available Wallets</h4>
             <div className="grid grid-cols-1 gap-2">
-              {wallets?.filter(w => !w.isConnected).map((wallet) => (
-                <button
-                  data-test-id={`${wallet.id}-connect`}
-                  className="btn btn-outline justify-start"
-                  key={`provider-${wallet.id}`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    wallet.connect()
-                  }}
-                >
-                  {!isKmd(wallet) && (
-                    <img
-                      alt={`wallet_icon_${wallet.id}`}
-                      src={wallet.metadata.icon}
-                      className="w-6 h-6 mr-2"
-                    />
+              {wallets?.map((wallet) => (
+                <div key={`provider-${wallet.id}`} className="flex flex-col gap-2">
+                  <button
+                    data-test-id={`${wallet.id}-connect`}
+                    className={`btn btn-outline justify-start ${wallet.isConnected ? 'btn-disabled opacity-50' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (!wallet.isConnected) {
+                        wallet.connect()
+                      }
+                    }}
+                  >
+                    {!isKmd(wallet) && (
+                      <img
+                        alt={`wallet_icon_${wallet.id}`}
+                        src={wallet.metadata.icon}
+                        className="w-6 h-6 mr-2"
+                      />
+                    )}
+                    <span className="truncate">
+                      {isKmd(wallet) ? 'LocalNet Wallet' : wallet.metadata.name}
+                    </span>
+                  </button>
+                  
+                  {/* Additional accounts from same wallet */}
+                  {wallet.isConnected && wallet.accounts.length > 1 && (
+                    <div className="pl-2 space-y-1">
+                      {wallet.accounts.map((account, idx) => (
+                        <button
+                          key={`additional-${account.address}`}
+                          className="btn btn-xs btn-outline w-full justify-start"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            wallet.setActiveAccount(account.address)
+                          }}
+                        >
+                          <span className="truncate text-xs">
+                            {account.name || `Account ${idx + 1}`}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   )}
-                  <span className="truncate">
-                    {isKmd(wallet) ? 'LocalNet Wallet' : wallet.metadata.name}
-                  </span>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -116,7 +129,7 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
 
         {/* Footer Actions */}
         <div className="modal-action">
-          {connectedWallets.length > 0 && (
+          {(activeWalletAccounts ?? []).length > 0 && (
             <button
               className="btn btn-error btn-sm"
               data-test-id="logout-all"

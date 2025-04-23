@@ -2,7 +2,7 @@
 import { useWallet } from '@txnlab/use-wallet-react'
 import React, { useState } from 'react'
 import ConnectWallet from './components/ConnectWallet'
-import Transact from './components/Transact'
+import Transact from './components/MultisigSetup'
 
 interface HomeProps {}
 
