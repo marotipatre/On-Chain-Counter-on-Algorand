@@ -2,6 +2,8 @@
 
 This starter full stack project has been generated using AlgoKit. See below for default getting started instructions.
 
+Check out 3-4 different types of deployement we can make within frontend for smart contracts.
+
 ## Setup
 
 ### Initial setup
